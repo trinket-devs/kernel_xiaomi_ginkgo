@@ -560,6 +560,11 @@ static inline void *kvmalloc_array(size_t n, size_t size, gfp_t flags)
 	return kvmalloc(n * size, flags);
 }
 
+static inline void *kvcalloc(size_t n, size_t size, gfp_t flags)
+{
+	return kvmalloc_array(n, size, flags | __GFP_ZERO);
+}
+
 extern void kvfree(const void *addr);
 
 static inline int compound_mapcount(struct page *page)
@@ -1733,6 +1738,13 @@ static inline int __p4d_alloc(struct mm_struct *mm, pgd_t *pgd,
 {
 	return 0;
 }
+
+static inline unsigned long mm_nr_puds(const struct mm_struct *mm)
+{
+	return 0;
+}
+
+static inline void mm_nr_puds_init(struct mm_struct *mm) {}
 static inline void mm_inc_nr_puds(struct mm_struct *mm) {}
 static inline void mm_dec_nr_puds(struct mm_struct *mm) {}
 
@@ -1749,14 +1761,24 @@ static inline int __pud_alloc(struct mm_struct *mm, p4d_t *p4d,
 #else
 int __pud_alloc(struct mm_struct *mm, p4d_t *p4d, unsigned long address);
 
+static inline void mm_nr_puds_init(struct mm_struct *mm)
+{
+	atomic_long_set(&mm->nr_puds, 0);
+}
+
+static inline unsigned long mm_nr_puds(const struct mm_struct *mm)
+{
+	return atomic_long_read(&mm->nr_puds);
+}
+
 static inline void mm_inc_nr_puds(struct mm_struct *mm)
 {
-	atomic_long_add(PTRS_PER_PUD * sizeof(pud_t), &mm->pgtables_bytes);
+	atomic_long_inc(&mm->nr_puds);
 }
 
 static inline void mm_dec_nr_puds(struct mm_struct *mm)
 {
-	atomic_long_sub(PTRS_PER_PUD * sizeof(pud_t), &mm->pgtables_bytes);
+	atomic_long_dec(&mm->nr_puds);
 }
 #endif
 
@@ -1767,53 +1789,38 @@ static inline int __pmd_alloc(struct mm_struct *mm, pud_t *pud,
 	return 0;
 }
 
+static inline void mm_nr_pmds_init(struct mm_struct *mm) {}
+
+static inline unsigned long mm_nr_pmds(const struct mm_struct *mm)
+{
+	return 0;
+}
+
 static inline void mm_inc_nr_pmds(struct mm_struct *mm) {}
 static inline void mm_dec_nr_pmds(struct mm_struct *mm) {}
 
 #else
 int __pmd_alloc(struct mm_struct *mm, pud_t *pud, unsigned long address);
 
+static inline void mm_nr_pmds_init(struct mm_struct *mm)
+{
+	atomic_long_set(&mm->nr_pmds, 0);
+}
+
+static inline unsigned long mm_nr_pmds(const struct mm_struct *mm)
+{
+	return atomic_long_read(&mm->nr_pmds);
+}
+
 static inline void mm_inc_nr_pmds(struct mm_struct *mm)
 {
-	atomic_long_add(PTRS_PER_PMD * sizeof(pmd_t), &mm->pgtables_bytes);
+	atomic_long_inc(&mm->nr_pmds);
 }
 
 static inline void mm_dec_nr_pmds(struct mm_struct *mm)
 {
-	atomic_long_sub(PTRS_PER_PMD * sizeof(pmd_t), &mm->pgtables_bytes);
+	atomic_long_dec(&mm->nr_pmds);
 }
-#endif
-
-#ifdef CONFIG_MMU
-static inline void mm_pgtables_bytes_init(struct mm_struct *mm)
-{
-	atomic_long_set(&mm->pgtables_bytes, 0);
-}
-
-static inline unsigned long mm_pgtables_bytes(const struct mm_struct *mm)
-{
-	return atomic_long_read(&mm->pgtables_bytes);
-}
-
-static inline void mm_inc_nr_ptes(struct mm_struct *mm)
-{
-	atomic_long_add(PTRS_PER_PTE * sizeof(pte_t), &mm->pgtables_bytes);
-}
-
-static inline void mm_dec_nr_ptes(struct mm_struct *mm)
-{
-	atomic_long_sub(PTRS_PER_PTE * sizeof(pte_t), &mm->pgtables_bytes);
-}
-#else
-
-static inline void mm_pgtables_bytes_init(struct mm_struct *mm) {}
-static inline unsigned long mm_pgtables_bytes(const struct mm_struct *mm)
-{
-	return 0;
-}
-
-static inline void mm_inc_nr_ptes(struct mm_struct *mm) {}
-static inline void mm_dec_nr_ptes(struct mm_struct *mm) {}
 #endif
 
 int __pte_alloc(struct mm_struct *mm, pmd_t *pmd, unsigned long address);
@@ -2639,6 +2646,7 @@ extern int sysctl_drop_caches;
 int drop_caches_sysctl_handler(struct ctl_table *, int,
 					void __user *, size_t *, loff_t *);
 #endif
+void mm_drop_caches(int val);
 
 void drop_slab(void);
 void drop_slab_node(int nid);
