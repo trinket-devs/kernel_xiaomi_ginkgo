@@ -54,7 +54,6 @@ static void proc_evict_inode(struct inode *inode)
 }
 
 static struct kmem_cache *proc_inode_cachep __ro_after_init;
-static struct kmem_cache *pde_opener_cache __ro_after_init;
 
 static struct inode *proc_alloc_inode(struct super_block *sb)
 {
@@ -93,7 +92,7 @@ static void init_once(void *foo)
 	inode_init_once(&ei->vfs_inode);
 }
 
-void __init proc_init_kmemcache(void)
+void __init proc_init_inodecache(void)
 {
 	proc_inode_cachep = kmem_cache_create("proc_inode_cache",
 					     sizeof(struct proc_inode),
@@ -101,9 +100,6 @@ void __init proc_init_kmemcache(void)
 						SLAB_MEM_SPREAD|SLAB_ACCOUNT|
 						SLAB_PANIC),
 					     init_once);
-	pde_opener_cache =
-		kmem_cache_create("pde_opener", sizeof(struct pde_opener), 0,
-				  SLAB_ACCOUNT|SLAB_PANIC, NULL);
 }
 
 static int proc_show_options(struct seq_file *seq, struct dentry *root)
