@@ -8370,6 +8370,8 @@ void hdd_cfg_print(struct hdd_context *hdd_ctx)
 		hdd_ctx->config->enable_phy_reg_retention);
 	hdd_debug("Name = [btm_offload_config] value = [0x%x]",
 		  hdd_ctx->config->btm_offload_config);
+	hdd_debug("Name = [btm_validity_timer] value = [0x%x]",
+		  hdd_ctx->config->btm_validity_timer);
 	hdd_cfg_print_sae(hdd_ctx);
 	hdd_debug("Name = [btm_solicited_timeout] value = [0x%x]",
 		  hdd_ctx->config->btm_solicited_timeout);
@@ -8700,8 +8702,31 @@ QDF_STATUS hdd_parse_config_ini(struct hdd_context *hdd_ctx)
 
 	memset(cfgIniTable, 0, sizeof(cfgIniTable));
 
-	size = strlen(wlan_cfg) + 1;
-	buffer = (char *)qdf_mem_malloc(size);
+	do {
+		if (status == -EAGAIN)
+			msleep(HDD_CFG_REQUEST_FIRMWARE_DELAY);
+
+		status = request_firmware(&fw, WLAN_INI_FILE,
+					  hdd_ctx->parent_dev);
+
+		retry++;
+	} while ((retry < HDD_CFG_REQUEST_FIRMWARE_RETRIES) &&
+		 (status == -EAGAIN));
+
+	if (status) {
+		hdd_alert("request_firmware failed %d", status);
+		qdf_status = QDF_STATUS_E_FAILURE;
+		goto config_exit;
+	}
+	if (!fw || !fw->data || !fw->size) {
+		hdd_alert("%s download failed", WLAN_INI_FILE);
+		qdf_status = QDF_STATUS_E_FAILURE;
+		goto config_exit;
+	}
+
+	hdd_debug("qcom_cfg.ini Size %zu", fw->size);
+
+	buffer = (char *)qdf_mem_malloc(fw->size + 1);
 
 	if (NULL == buffer) {
 		hdd_err("qdf_mem_malloc failure");
