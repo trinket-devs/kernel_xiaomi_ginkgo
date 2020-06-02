@@ -1741,6 +1741,31 @@ static int qg_get_charge_counter(struct qpnp_qg *chip, int *charge_counter)
 	return 0;
 }
 
+static int qg_get_charge_raw(struct qpnp_qg *chip, int *charge_raw)
+{
+	int rc = 0;
+	int64_t capacity = 0;	// max estimated capacity
+
+	if (is_debug_batt_id(chip) || chip->battery_missing) {
+		*charge_raw = -EINVAL;
+		return 0;
+	}
+
+	rc = qg_get_learned_capacity(chip, &capacity);
+	if (rc < 0 || !capacity)
+		rc = qg_get_nominal_capacity((int *)&capacity, 250, true);
+
+	if (rc < 0) {
+		pr_err("Failed to get FCC for charge-raw rc=%d\n", rc);
+		return rc;
+	}
+	
+	// current capacity = (current charge/100) * max capacity
+	*charge_raw = div_s64(capacity * DIV_ROUND_CLOSEST(chip->msoc, 100), 100);
+
+	return 0;
+}
+
 static int qg_get_power(struct qpnp_qg *chip, int *val, bool average)
 {
 	int rc, v_min, v_ocv, rbatt = 0, esr = 0;
@@ -2177,6 +2202,9 @@ static int qg_psy_get_property(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_BATT_AGE_LEVEL:
 		pval->intval = chip->batt_age_level;
 		break;
+	case POWER_SUPPLY_PROP_CHARGE_NOW_RAW:
+		rc = qg_get_charge_raw(chip, &pval->intval);
+		break;
 	default:
 		pr_debug("Unsupported property %d\n", psp);
 		break;
@@ -2238,6 +2266,7 @@ static enum power_supply_property qg_psy_props[] = {
 	POWER_SUPPLY_PROP_POWER_NOW,
 	POWER_SUPPLY_PROP_SCALE_MODE_EN,
 	POWER_SUPPLY_PROP_BATT_AGE_LEVEL,
+	POWER_SUPPLY_PROP_CHARGE_NOW_RAW,
 };
 
 static const struct power_supply_desc qg_psy_desc = {
