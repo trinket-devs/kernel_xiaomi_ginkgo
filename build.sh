@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Compile script for QuicksilveR kernel
+# Compile script for ginkgo kernel
 # Copyright (C) 2020-2021 Adithya R.
 
 # Setup environment
