@@ -1,27 +1,10 @@
 BRANCH=android-4.14
-ARCH=arm64
+KERNEL_DIR=common
+
 CC=clang
 LD=ld.lld
-AR=llvm-ar                                
-AS=llvm-as                                
-NM=llvm-nm                                
-OBJCOPY=llvm-objcopy                     
-OBJDUMP=llvm-objdump                      
-STRIP=llvm-strip                          
-CROSS_COMPILE=aarch64-linux-gnu-          
-CROSS_COMPILE_ARM32=arm-linux-gnueabi-    
-CLANG_TRIPLE=aarch64-linux-gnu-
-REAL_COMPILER=clang
-TOOL_CHAIN_PATH=/usr/bin/aarch64-linux-gnu-
-CFLAGS=""
-CXXFLAGS=""
-LDFLAGS=""
-GCC_TOOLCHAIN=/usr
-CLANG_PREBUILT_BIN=$HOME/tc/proton/clang-13/bin
-CLANG_TCHAIN=$CLANG_PREBUILT_BIN/clang
-CLANG_VERSION="$(${CLANG_TCHAIN} --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')"
+CLANG_PREBUILT_BIN=prebuilts-master/clang/host/linux-x86/clang-r383902/bin
 BUILDTOOLS_PREBUILT_BIN=build/build-tools/path/linux-x86
 
-MAKEFLAGS=(CC=$CLANG_TCHAIN CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=$TOOL_CHAIN_PATH "KBUILD_COMPILER_STRING=${CLANG_VERSION}" HOSTCC=$CLANG_TCHAIN)
 EXTRA_CMDS=''
 STOP_SHIP_TRACEPRINTK=1
