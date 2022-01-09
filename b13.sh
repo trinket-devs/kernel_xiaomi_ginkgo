@@ -41,7 +41,7 @@ if [[ $1 == "-r" || $1 == "--regen" ]]; then
 		   exit 0
 else
 		echo -e "\nStarting compilation...\n"
-		make -j15 O=out ARCH=arm64 \
+		make -j$(nproc --all) O=out ARCH=arm64 \
 		CC=clang \
 		LD=ld.lld \
 		AR=llvm-ar \
