@@ -24,6 +24,10 @@ if ! [ -d "$TC_DIR" ]; then
 				exit 1
 		fi
 fi
+
+# Disable google hidden path (fuk google)
+export TEMPORARY_DISABLE_PATH_RESTRICTIONS:=true
+
 export KBUILD_COMPILER_STRING="$($TC_DIR/bin/clang --version | head -n 1 | perl -pe 's/\((?:http|git).*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//' -e 's/^.*clang/clang/')"
 
 # Delete old file before build
