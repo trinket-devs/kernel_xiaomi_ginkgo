@@ -39,7 +39,8 @@ fi
 mkdir -p out
 make O=out ARCH=arm64 $DEFCONFIG
 
-# Regened defconfig
+# Regened defconfig 
+#  Test use ccache.
 if [[ $1 == "-r" || $1 == "--regen" ]]; then
 		   cp out/.config arch/arm64/configs/$DEFCONFIG
 		   echo -e "\nRegened defconfig succesfully!"
@@ -48,6 +49,7 @@ else
 		echo -e "\nStarting compilation...\n"
 		make -j$(nproc --all) O=out ARCH=arm64 \
 		CC="/usr/bin/ccache clang" \
+		CXX="/usr/bin/ccache g++" \
 		LD=ld.lld \
 		AR=llvm-ar \
 		AS=llvm-as \
