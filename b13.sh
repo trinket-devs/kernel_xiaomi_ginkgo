@@ -47,7 +47,7 @@ if [[ $1 == "-r" || $1 == "--regen" ]]; then
 else
 		echo -e "\nStarting compilation...\n"
 		make -j$(nproc --all) O=out ARCH=arm64 \
-		CC=clang \
+		CC="/usr/bin/ccache clang" \
 		LD=ld.lld \
 		AR=llvm-ar \
 		AS=llvm-as \
