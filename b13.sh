@@ -14,7 +14,7 @@ export PATH="$TC_DIR/bin:$PATH"
 #export KBUILD_BUILD_USER=adithya
 #export KBUILD_BUILD_HOST=ghostrider_reborn
 #export LD_LIBRARY_PATH="$TC_DIR/lib:$LD_LIBRARY_PATH"
-export KBUILD_COMPILER_STRING="$($TC_DIR/bin/clang --version | head -n 1 | perl -pe 's/\((?:http|git).*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//' -e 's/^.*clang/clang/')"
+#export KBUILD_COMPILER_STRING="$($TC_DIR/bin/clang --version | head -n 1 | perl -pe 's/\((?:http|git).*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//' -e 's/^.*clang/clang/')"
 
 # Check if toolchain is exist
 if ! [ -d "$TC_DIR" ]; then
@@ -24,6 +24,7 @@ if ! [ -d "$TC_DIR" ]; then
 				exit 1
 		fi
 fi
+export KBUILD_COMPILER_STRING="$($TC_DIR/bin/clang --version | head -n 1 | perl -pe 's/\((?:http|git).*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//' -e 's/^.*clang/clang/')"
 
 # Delete old file before build
 if [[ $1 = "-c" || $1 = "--clean" ]]; then
@@ -86,5 +87,5 @@ if [ -f "out/arch/arm64/boot/Image.gz-dtb" ] && [ -f "out/arch/arm64/boot/dtbo.i
 				curl --upload-file $ZIPNAME http://transfer.sh/$ZIPNAME; echo
 		fi
 else
-		echo -e "\nUpload failed!"
+		echo -e "\nFailed!"
 fi
