@@ -23,7 +23,7 @@ obj-$(CONFIG_CPUFREQ_DT)		+= cpufreq-dt.o
 obj-$(CONFIG_CPUFREQ_DT_PLATDEV)	+= cpufreq-dt-platdev.o
 
 # Add obj fb-foot
-obj-$(CONFIG_FINGERPRINT_BOOST)         += fp-boost.c
+obj-$(CONFIG_FINGERPRINT_BOOST)		+= fp-boost.o
 obj-$(CONFIG_CPUFREQ_DUMMY)		+= dummy-cpufreq.o
 
 ##################################################################################
